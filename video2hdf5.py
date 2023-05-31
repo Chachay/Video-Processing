@@ -20,25 +20,24 @@ def video2hdf5(path, db):
         frame_group = images_group.create_group("full")
         cropped_group = images_group.create_group("cropped")
 
-        # images/subset group
-        annotations_group = h5.create_group("annotations")
+        matrix_group = h5.create_group("matrix")
 
         for i in tqdm(range(int(frames))):
             ret, frame = cap.read()
 
-            i += 1
             if ret:
                 image_dataset = frame_group.create_dataset(
                     name=f'{i:08}', data=frame, compression="gzip"
                 )
 
-                ret = app.get(frame, crop_size)
-                if not ret:
-                    cropped_img = ret[0]
-                    if not cropped_img:
-                        image_dataset = cropped_group.create_dataset(
-                            name=f'{i:08}', data=cropped_img[0], compression="gzip"
-                        )
+                cropped_img, mat = app.get(frame, crop_size)
+                if not cropped_img:
+                    image_dataset = cropped_group.create_dataset(
+                        name=f'{i:08}', data=cropped_img[0], compression="gzip"
+                    )
+                    matrix_dataset = matrix_group.create_dataset(
+                        name=f'{i:08}', data=mat[0], compression="gzip"
+                    )
 
     cap.release()
 
